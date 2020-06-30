@@ -1,20 +1,39 @@
-// Game.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
+#include "core.h"
+#include "Math/Math.h"
+#include "Math/Random.h"
+#include "Math/Vector2.h"
 #include <iostream>
 
-int main()
-{
-    std::cout << "Hello World!\n";
+nc::Vector2 position{ 400, 300 };
+std::vector <nc::Vector2> points;
+
+bool Update(float dt){
+	return false;
 }
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
+void Draw(Core::Graphics& graphics){
+	graphics.SetColor(RGB(rand() % 256, rand() % 256, rand() % 256));
+	graphics.DrawLine(static_cast<float>(rand() % 800), static_cast<float>(rand() % 600), static_cast<float>(rand() % 800), static_cast<float>(rand() % 600));
 
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
+	for (size_t i = 0; i < 40 - 1; i++) {
+		nc::Vector2 p1 = points[i];
+		nc::Vector2 p2 = points[i+1];
+
+		graphics.DrawLine(p1.x, p1.y, p2.x, p2.y);
+	}
+
+}
+
+int main(){
+	for (size_t i = 0; i < 40; i++) {
+		points.push_back(nc::Vector2{ nc::random(0.0f,800.0f), nc::random(0.0f, 600.0f) });
+	}
+
+	char name[] = "CSC196";
+	Core::Init(name, 800, 600);
+	Core::RegisterUpdateFn(Update);
+	Core::RegisterDrawFn(Draw);
+
+	Core::GameLoop();
+	Core::Shutdown();
+}
