@@ -1,0 +1,4 @@
+{ 400, 300 }
+4.0
+0.0
+C:\\Users\\Sarcasm\\C++\\CSC196\\Build\\square.txt
