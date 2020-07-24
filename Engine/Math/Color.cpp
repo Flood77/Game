@@ -3,6 +3,12 @@
 #include <string>
 
 namespace nc {
+	const Color Color::white{ 1, 1, 1 };
+	const Color Color::red{ 1, 0, 0 };
+	const Color Color::green{ 0, 1, 0 };
+	const Color Color::blue{ 0, 0, 1 };
+	const Color Color::yellow{ 1, 1, 0 };
+
 	std::istream& operator >>(std::istream& stream, Color& c){
 		std::string line;
 		std::getline(stream, line);
@@ -13,7 +19,7 @@ namespace nc {
 
 			line = line.substr(line.find(",") + 1, line.find("}") - line.find(",") - 1);
 
-			std::string cg = line.substr(0, line.find(",") - 1);
+			std::string cg = line.substr(0, line.find(","));
 			c.g = std::stof(cg);
 
 			std::string cb = line.substr(line.find(",") + 1, line.find("}") - line.find(","));

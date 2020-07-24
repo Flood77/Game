@@ -1,110 +1,117 @@
-#include "core.h"
+#include "Game.h"
 #include "Math/Math.h"
 #include "Math/Random.h"
-//#include "Math/Vector2.h"
-#include "Math/Transform.h"
 #include "Math/Color.h"
-#include "Graphics/Shape.h"
-#include "Object/Actor.h"
+#include "Math/Transform.h"
+#include "Actors/Player.h" 
+#include "Actors/Enemy.h"
+#include "Object/Scene.h"
+#include "Graphics/ParticleSystem.h"
 #include <iostream>
 #include <string>
 
-const size_t NUM_POINTS = 40;
-float speed = 300;
+const int Game::WIDTH = 800;
+const int Game::HEIGHT = 800;
 
-nc::Color color{ 0, 1, 1 };
-nc::Transform transform{ { 400.0f, 300.0f }, 4, 0 };
+void Game::Startup(){
+	g_particleSystem.Startup();
+	m_scene.Startup();
+	m_scene.SetGame(this);
+}
 
-float t{ 0 };
+void Game::Shutdown(){
+	m_scene.Shutdown();
+	g_particleSystem.Shutdown();
+}
 
-float frametime;
-float roundTime{ 0 };
-bool gameOver{ false };
-
-DWORD prevTime;
-DWORD deltaTime;
-
-nc::Actor player;
-nc::Actor enemy;
-nc::Shape currentShape;
-
-bool Update(float dt){ // delta time (60fps) (1 / 60 = 0.016)
-	DWORD time = GetTickCount();
-	deltaTime = time - prevTime;
-	prevTime = time;
-
-	t = t + dt * 5.0f;
-
-	frametime = dt;
-	roundTime += dt;
-	if (roundTime >= 5.0f) gameOver = true;
-
-	if (gameOver) dt = dt * 0.25f;
-
+bool Game::Update(float dt){
+	m_frameTime = dt;
 	bool quit = Core::Input::IsPressed(Core::Input::KEY_ESCAPE);
+	
+	switch (m_state) {
+	case Game::eState::INIT:
+		break;
+	case Game::eState::TITLE:
+		if (Core::Input::IsPressed(VK_SPACE)) {
+			m_state = eState::START_GAME;
+		}
+		break;
+	case Game::eState::START_GAME:
+	{
+		Player* player = new Player;
+		player->Load("C:\\Users\\Sarcasm\\C++\\CSC196\\Build\\player.txt");
+		m_scene.AddActor(player);
 
-	int x, y;
-	Core::Input::GetMousePos(x, y);
+		for (int i = 0; i < 4; i++) {
+			Enemy* actor = new Enemy;
+			actor->Load("C:\\Users\\Sarcasm\\C++\\CSC196\\Build\\enemy.txt");
+			actor->SetTarget(player);
+			actor->GetTransform().position = nc::Vector2{ nc::random(0,800), nc::random(0,600) };
+			m_scene.AddActor(actor);
+		}
+		m_state = eState::GAME;
+	}
+		break;
+	case Game::eState::GAME:
+		m_spawntimer += dt;
+		if (m_spawntimer >= 3.0f) {
+			m_spawntimer = 0.0f;
 
-	//nc::Vector2 target = nc::Vector2{ x,y };
-	//nc::Vector2 direction = target - position;
-	//direction.Normalize();
+			Enemy* actor = new Enemy;
+			actor->Load("C:\\Users\\Sarcasm\\C++\\CSC196\\Build\\enemy.txt");
+			actor->SetTarget(m_scene.GetActor<Player>());
+			actor->GetTransform().position = nc::Vector2{ nc::random(0,800), nc::random(0,600) };
+			m_scene.AddActor(actor);
+		}
 
-	nc::Vector2 force;
-	if (Core::Input::IsPressed('W')) { force = nc::Vector2::forward * speed * dt; }
-	nc::Vector2 direction = force;
-	direction = nc::Vector2::Rotate(direction, player.GetTransform().angle);
-	player.GetTransform().position = player.GetTransform().position + direction;
+		m_scene.Update(dt);
+		break;
+	case Game::eState::GAME_OVER:
+		break;
+	}
 
-	//rotate
-	if (Core::Input::IsPressed('A')) { player.GetTransform().angle = player.GetTransform().angle - (dt * nc::DegreesToRadians(360.0f)); }
-	if (Core::Input::IsPressed('D')) { player.GetTransform().angle = player.GetTransform().angle + (dt * nc::DegreesToRadians(360.0f)); }
+	if (Core::Input::IsPressed(Core::Input::BUTTON_LEFT)) {
+		int x, y;
+		Core::Input::GetMousePos(x, y);
 
-	transform.position = nc::Clamp(player.GetTransform().position, { 0,0 }, { 800,600 });
+		nc::Color colors[] = { nc::Color::white, nc::Color::blue, nc::Color::yellow };
+		nc::Color color = colors[rand() % 3];
 
-	//move
-	/*if (Core::Input::IsPressed(Core::Input::KEY_LEFT)) position += nc::Vector2::left * speed * dt;
-	if (Core::Input::IsPressed(Core::Input::KEY_RIGHT)) position += nc::Vector2::right * speed * dt;
-	if (Core::Input::IsPressed(Core::Input::KEY_UP)) position += nc::Vector2::up * speed * dt;
-	if (Core::Input::IsPressed(Core::Input::KEY_DOWN)) position += nc::Vector2::down * speed * dt;*/
+		g_particleSystem.Create(nc::Vector2{ x, y }, 0, 180, 30, color, 1, 100, 200);
+	}
 
-	if (Core::Input::IsPressed('1')) { player.Load("C:\\Users\\Sarcasm\\C++\\CSC196\\Build\\player_ship.txt"); }
-	if (Core::Input::IsPressed('2')) { player.Load("C:\\Users\\Sarcasm\\C++\\CSC196\\Build\\player_square.txt"); }
+	g_particleSystem.Update(dt);
 
 	return quit;
 }
 
-void Draw(Core::Graphics& graphics){
-	
-	graphics.DrawString(10, 10, std::to_string(frametime).c_str());
-	graphics.DrawString(10, 20, std::to_string(1.0f / frametime).c_str());
-	graphics.DrawString(10, 30, std::to_string(deltaTime / 1000.0f).c_str());
+void Game::Draw(Core::Graphics& graphics){
+	graphics.SetColor(nc::Color{ 1, 1, 255 });
+	graphics.DrawString(10, 10, std::to_string(m_frameTime).c_str());
+	graphics.DrawString(10, 20, std::to_string(1.0f / m_frameTime).c_str());
 
-	float v = (std::sin(t) + 1.0f) * 0.5f;
+	g_particleSystem.Draw(graphics);
 
-	//nc::Color c = nc::Lerp(nc::Color{ 0, 0, 1 }, nc::Color{ 1, 0, 0 }, v);
-	//graphics.SetColor(c);
-
-	nc::Vector2 p = nc::Lerp(nc::Vector2{ 400, 300 }, nc::Vector2{ 100, 100 }, v);
-	graphics.DrawString(p.x, p.y, "Last Starfighter");
-
-	if (gameOver) graphics.DrawString(400, 300, "Game Over");
-
-	player.Draw(graphics);
-	enemy.Draw(graphics);
-}
-
-int main(){
-	player.Load("C:\\Users\\Sarcasm\\C++\\CSC196\\Build\\player_ship.txt");
-	enemy.Load("C:\\Users\\Sarcasm\\C++\\CSC196\\Build\\enemy.txt");
-	DWORD ticks = GetTickCount(); //how many ticks in a second
-	std::cout << ticks / 1000/ 60 / 60 << std::endl;
-	prevTime = GetTickCount();
-	char name[] = "CSC196";
-	Core::Init(name, 800, 600, 15);
-	Core::RegisterUpdateFn(Update);
-	Core::RegisterDrawFn(Draw);
-
-	Core::GameLoop();
-	Core::Shutdown();
+	switch (m_state)
+	{
+	case Game::eState::INIT:
+		break;
+	case Game::eState::TITLE:
+		graphics.SetColor(nc::Color::green);
+		graphics.DrawString(400, 300, "VECTOROIDS");
+		break;
+	case Game::eState::START_GAME:
+		break;
+	case Game::eState::GAME:
+		graphics.SetColor(nc::Color::white);
+		graphics.DrawString(700, 40, std::to_string(m_score).c_str());
+		m_scene.Draw(graphics);
+		break;
+	case Game::eState::GAME_OVER:
+		graphics.SetColor(nc::Color::green);
+		graphics.DrawString(400, 300, "GAME OVER");
+		break;
+	default:
+		break;
+	}
 }

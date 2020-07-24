@@ -10,23 +10,33 @@ namespace nc {
 		if (stream.is_open()) {
 			success = true;
 
-			stream >> m_transform.position;
-			stream >> m_transform.scale;
-			stream >> m_transform.angle;
-
-			std::string shapename;
-			stream >> shapename;
-			m_shape.Load(shapename);
+			Load(stream);
 
 			stream.close();
 		}
 
 		return success;
 	}
+	void Actor::Load(std::istream& stream) {
+		stream >> m_transform.position;
+		stream >> m_transform.scale;
+		stream >> m_transform.angle;
+
+		std::string shapename;
+		//std::getline(stream, shapename);
+		stream >> shapename;
+
+		m_shape.Load(shapename);
+	}
+
 	void Actor::Update(float dt){
 		//nothing
 	}
 	void nc::Actor::Draw(Core::Graphics& graphics) {
 		m_shape.Draw(graphics, m_transform);
+	}
+
+	float Actor::GetRadius(){
+		return m_shape.GetRadius() * m_transform.scale;
 	}
 }

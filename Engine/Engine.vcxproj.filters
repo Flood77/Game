@@ -26,9 +26,6 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Math\Math.h">
       <Filter>Math</Filter>
     </ClInclude>
@@ -49,6 +46,21 @@
     </ClInclude>
     <ClInclude Include="Object\Actor.h">
       <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Matrix22.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Matrix33.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Scene.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Particle.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\ParticleSystem.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -72,6 +84,12 @@
     </ClCompile>
     <ClCompile Include="Object\Actor.cpp">
       <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Scene.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\ParticleSystem.cpp">
+      <Filter>Graphics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

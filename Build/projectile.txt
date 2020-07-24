@@ -1,0 +1,5 @@
+{ 100, 150 }
+1
+0
+C:\\Users\\Sarcasm\\C++\\CSC196\\Build\\bullet.txt
+400.0
